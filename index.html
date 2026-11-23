@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de Frete — PortoEX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B0B3C; --orange:#FF6428; --orange-soft:#FFE6DB;
+  --bg:#F3F4F8; --surface:#FFFFFF; --surface-2:#ECEEF5; --text:#14143A; --muted:#5F6280; --line:#D9DCE8;
+  --head:#0B0B3C; --head-text:#FFFFFF;
+  --panel:#0B0B3C; --panel-text:#FFFFFF; --panel-muted:#B4B6D6; --panel-line:#26265E;
+  --good:#1E9E63; --warn:#C27700; --bad:#E04646;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D0D22; --surface:#16163A; --surface-2:#1E1E48; --text:#ECEDF7; --muted:#A3A5C4; --line:#2C2C5C;
+    --head:#08082A; --panel:#1C1C50; --panel-line:#30306A; --orange-soft:#3A2018; --warn:#F0A830;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D0D22; --surface:#16163A; --surface-2:#1E1E48; --text:#ECEDF7; --muted:#A3A5C4; --line:#2C2C5C;
+  --head:#08082A; --panel:#1C1C50; --panel-line:#30306A; --orange-soft:#3A2018; --warn:#F0A830;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
+h1,legend,.big,.brand,.mid{font-family:Montserrat,system-ui,"Segoe UI",sans-serif}
+
+header{background:var(--head);color:var(--head-text)}
+.hwrap{max-width:1160px;margin:0 auto;padding:22px 20px 26px}
+.brand{font-weight:800;font-size:15px;letter-spacing:.04em}
+.brand span{color:var(--orange)}
+.brand small{display:block;font-family:Poppins,sans-serif;font-weight:400;letter-spacing:0;font-size:12px;color:#B4B6D6}
+h1{margin:14px 0 0;font-size:clamp(24px,4vw,34px);font-weight:800;line-height:1.1}
+.sub{margin:6px 0 0;color:#B4B6D6;font-size:14px;max-width:60ch}
+
+.wrap{max-width:1160px;margin:0 auto;padding:24px 20px 40px;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.forms{display:grid;gap:16px;min-width:0}
+fieldset{margin:0;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:18px 18px 8px;min-width:0}
+legend{padding:0 6px;font-weight:700;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:4px 16px}
+.f{display:flex;flex-direction:column;margin-bottom:12px;min-width:0}
+.f > label,.f > .lb{font-size:13px;font-weight:500;margin-bottom:5px}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden;min-width:0}
+.inp:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-soft)}
+.inp b{font-weight:500;font-size:13px;color:var(--muted);padding:0 0 0 12px;white-space:nowrap}
+.inp b.r{padding:0 12px 0 0}
+.inp input,.inp select{flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--text);font:inherit;font-size:15px;padding:10px 12px;outline:none}
+.inp select{cursor:pointer}
+.inp select option{background:var(--surface);color:var(--text)}
+.pair{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button{font:inherit;font-size:12px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:3px 10px;cursor:pointer}
+.chips button:hover{border-color:var(--orange)}
+.hide{display:none!important}
+
+/* Rota */
+.rota{display:grid;gap:8px;margin-bottom:12px}
+.rrow{display:grid;grid-template-columns:24px 28px minmax(0,1fr) 100px 120px 90px 36px;grid-template-areas:"h i c k p t x";gap:8px;align-items:center}
+.rhead{font-size:12px;color:var(--muted);font-weight:500}
+.rrow .i{grid-area:i}.rrow .c{grid-area:c}.rrow .k{grid-area:k}.rrow .p{grid-area:p}.rrow .t{grid-area:t}.rrow .x{grid-area:x}
+.rrow .i{width:26px;height:26px;border-radius:50%;border:2px solid var(--orange);display:grid;place-items:center;font-size:12px;font-weight:600}
+.rrow.orig .i,.rrow.dest .i{background:var(--orange);color:#fff}
+.rrow .inp input{padding:8px 10px}
+.rrow .inp b{padding-left:10px}.rrow .inp b.r{padding:0 10px 0 0}
+.x button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer}
+.x button:hover{color:var(--bad);border-color:var(--bad)}
+.rtools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px}
+.btn-add{font:inherit;font-size:14px;font-weight:600;color:var(--orange);background:transparent;border:1px dashed var(--orange);border-radius:10px;padding:8px 14px;cursor:pointer}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--orange)}
+.qualp{font-size:14px;color:var(--orange);font-weight:500}
+.btn-auto{font:inherit;font-size:14px;font-weight:600;color:#fff;background:var(--orange);border:0;border-radius:10px;padding:9px 14px;cursor:pointer}
+.btn-auto:disabled{opacity:.6;cursor:wait}
+.inp.sm{display:inline-flex;width:120px}
+.inp.sm input{padding:6px 8px}
+.rstat{font-size:13px;color:var(--muted);margin:0 0 12px}
+.rstat.err{color:var(--bad)}
+.rstat.ok{color:var(--good)}
+.rtot{background:var(--surface-2);border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:12px}
+.rtot strong{font-variant-numeric:tabular-nums}
+.rtot .rt{color:var(--muted);font-size:13px;margin-top:2px;word-break:break-word}
+@media (max-width:640px){
+  .rrow{grid-template-columns:24px 28px 1fr 1fr 1fr 36px;grid-template-areas:"h i c c c x" ". . k p t .";row-gap:6px}
+  .rhead{display:none}
+  .rrow + .rrow{padding-top:8px;border-top:1px solid var(--line)}
+}
+
+.rrow .v{grid-area:v}
+.rrow.crow{grid-template-columns:24px 28px minmax(0,1fr) 170px 36px;grid-template-areas:"h i c v x"}
+@media (max-width:640px){.rrow.crow{grid-template-columns:24px 28px minmax(0,1fr) 120px 36px;grid-template-areas:"h i c v x"}}
+.rrow .h{grid-area:h;width:24px;height:36px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:grab;touch-action:none;display:grid;place-items:center}
+.rrow .h:hover{color:var(--orange)}
+.rrow .h:active{cursor:grabbing}
+.rrow.dragging{position:relative;z-index:5;background:var(--surface);box-shadow:0 10px 24px rgba(0,0,0,.2);border-radius:10px;transition:none}
+.rrow.drop-before{box-shadow:inset 0 3px 0 var(--orange)}
+.rrow.drop-after{box-shadow:inset 0 -3px 0 var(--orange)}
+.rstat.warn{color:var(--warn)}
+.rrow.ret .i{border-style:dashed}
+.rrow.ret .c input{color:var(--muted)}
+.dre{width:100%;border-collapse:collapse;font-size:14px;margin-top:14px}
+.dre td{padding:5px 0;border-bottom:1px solid var(--panel-line);font-variant-numeric:tabular-nums;vertical-align:top}
+.dre td.v{text-align:right;white-space:nowrap;padding-left:8px}
+.dre td.p{text-align:right;width:54px;color:var(--panel-muted);white-space:nowrap}
+.dre .d{display:block;color:var(--panel-muted);font-size:12px}
+.dre .tag{font-size:11px;font-weight:600;color:#FFC766;margin-left:6px;white-space:nowrap}
+.dre tr.sub td{font-weight:600;border-bottom:1px solid var(--panel-muted)}
+.dre tr.grp td{padding-top:12px;color:var(--panel-muted);font-size:12px;font-weight:600;border-bottom:0}
+.dre tr.fim td{font-weight:700;font-size:15px;border-bottom:0;padding-top:8px}
+.dre tr.fim.neg td.v{color:#FF8A8A}.dre tr.fim.pos td.v{color:#7EE0B0}
+.sug{position:absolute;z-index:50;list-style:none;margin:0;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);max-height:300px;overflow:auto}
+.sug li{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+.sug li:hover,.sug li[aria-selected="true"]{background:var(--surface-2)}
+.sug li::before{content:"";flex:none;width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--orange)}
+.sug li span:first-of-type{flex:1}
+.sug .uf{color:var(--muted);font-size:13px;font-weight:500}
+.cp{flex:none;align-self:stretch;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:0 10px;display:grid;place-items:center}
+.cp:hover{color:var(--orange)}
+.cp.ok{color:var(--good)}
+details.comp{grid-column:1/-1;margin-bottom:12px;font-size:13px}
+details.comp summary{cursor:pointer;color:var(--orange);font-weight:500}
+.vinfo{background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-top:8px}
+.vinfo table{width:100%;border-collapse:collapse}
+.vinfo td{padding:4px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.vinfo td.d{color:var(--muted);padding:4px 8px}
+.vinfo td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.vinfo tr.t td{font-weight:600;border-bottom:0}
+.vinfo p{margin:8px 0 0}
+.w{color:var(--warn)}
+
+/* Resultado */
+aside{position:sticky;top:calc(16px + env(safe-area-inset-top,0px));background:var(--panel);color:var(--panel-text);border-radius:18px;padding:22px}
+.rlabel{font-size:13px;color:var(--panel-muted)}
+.big{font-size:clamp(30px,5vw,38px);font-weight:800;line-height:1.1;margin:4px 0 4px;font-variant-numeric:tabular-nums;word-break:break-word}
+.mid{font-size:26px;font-weight:800;line-height:1.15;margin:4px 0;font-variant-numeric:tabular-nums}
+.mid.neg{color:#FF8A8A}.mid.pos{color:#7EE0B0}
+.res{margin-top:16px;padding-top:16px;border-top:1px solid var(--panel-line)}
+.line2{font-size:14px;color:var(--panel-muted)}
+.line2 strong{color:var(--panel-text);font-weight:600}
+.pill{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;padding:4px 12px;border-radius:999px}
+.pill.good{background:rgba(30,158,99,.22);color:#7EE0B0}
+.pill.warn{background:rgba(224,138,0,.22);color:#FFC766}
+.pill.bad{background:rgba(224,70,70,.25);color:#FF9A9A}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:18px 0 12px;background:rgba(255,255,255,.08)}
+.bar i{display:block;height:100%;transition:width .3s}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.legend{list-style:none;margin:0;padding:0;font-size:14px}
+.legend li{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--panel-line)}
+.legend li:last-child{border-bottom:0}
+.legend .dot{width:10px;height:10px;border-radius:3px;flex:none}
+.legend .n{flex:1}
+.legend .v{font-variant-numeric:tabular-nums;font-weight:500}
+.legend .p{width:52px;text-align:right;color:var(--panel-muted);font-variant-numeric:tabular-nums}
+.legend li.total{font-weight:600}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.kpi{background:rgba(255,255,255,.06);border-radius:10px;padding:10px 12px}
+.kpi span{display:block;font-size:12px;color:var(--panel-muted)}
+.kpi strong{font-size:16px;font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;margin-top:18px}
+.actions button{flex:1;font:inherit;font-weight:600;font-size:14px;border-radius:10px;padding:10px;cursor:pointer;border:1px solid transparent}
+.btn-main{background:var(--orange);color:#fff}
+.btn-sec{background:transparent;color:var(--panel-text);border-color:var(--panel-line)!important}
+.err{background:rgba(224,70,70,.2);color:#FFB3B3;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+.mbar{display:none}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  aside{position:static}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);color:#fff;padding:10px 20px calc(10px + env(safe-area-inset-bottom,0px));justify-content:space-between;align-items:center;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+  .mbar span{font-size:12px;color:var(--panel-muted)}
+  .mbar strong{font-family:Montserrat,sans-serif;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+  .mbar a{color:var(--orange);font-size:13px;font-weight:600;text-decoration:none}
+  body{padding-bottom:76px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="brand">PORTO<span>EX</span><small>Transportando soluções</small></div>
+    <h1>Calculadora de frete</h1>
+    <p class="sub">Monte a rota, informe os custos da viagem e o valor do frete. A calculadora mostra o custo total e o resultado.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="forms">
+    <fieldset>
+      <legend>Rota</legend>
+      <div class="rota" id="rota"></div>
+      <div class="rtools">
+        <button type="button" class="btn-auto" id="autoKm">Calcular km automático</button>
+        <button type="button" class="btn-add" id="addCidade">+ Adicionar cidade</button>
+        <label class="chk" for="vel">Velocidade média <span class="inp sm"><input id="vel" inputmode="decimal" value="60"><b class="r">km/h</b></span></label>
+        <label class="chk"><input type="checkbox" id="volta"> Retorno à origem (acrescenta o trecho de volta)</label>
+        <a class="qualp" id="gmaps" href="https://www.google.com/maps" target="_blank" rel="noopener">Abrir rota no Google Maps</a>
+        <a class="qualp" href="https://qualp.com.br/" target="_blank" rel="noopener">Consultar pedágio no QualP</a>
+        <button type="button" class="btn-add" id="roteiro">Copiar roteiro para o Claude no Chrome</button>
+        <span class="hint" style="margin:0">Use o ícone de copiar ao lado de cada cidade para colar no QualP.</span>
+      </div>
+      <div class="rstat" id="rstat">Digite as cidades com o estado e clique em “Calcular km automático”. O tempo de cada trecho é km ÷ velocidade média.</div>
+      <div class="rtot" id="rtot"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Custos da viagem</legend>
+      <div class="grid">
+        <div class="f"><label for="veiculo">Veículo</label><div class="inp"><select id="veiculo"></select></div></div>
+        <div class="f"><label for="custokm">Custo por km rodado</label><div class="inp"><b>R$</b><input id="custokm" inputmode="decimal" placeholder="0,00"></div><span class="hint" id="hKm"></span></div>
+        <div class="f"><label for="custohora">Custo da hora do motorista</label><div class="inp"><b>R$</b><input id="custohora" inputmode="decimal" placeholder="0,00"></div><span class="hint">Salário + encargos ÷ horas do mês.</span></div>
+        <div class="f"><label for="hextra">Horas extras do motorista</label><div class="inp"><input id="hextra" inputmode="decimal" placeholder="0"><b class="r">h</b></div><span class="hint">Carga, descarga, espera. O tempo de direção vem da rota.</span></div>
+        <div class="f"><span class="lb">Pernoites</span><div class="pair"><div class="inp"><input id="pernQ" inputmode="decimal" placeholder="0" aria-label="Quantidade de pernoites"><b class="r">×</b></div><div class="inp"><b>R$</b><input id="pernV" inputmode="decimal" placeholder="valor" aria-label="Valor do pernoite"></div></div><span class="hint" id="hPern">Quantidade × valor de cada.</span></div>
+        <div class="f"><span class="lb">Refeições</span><div class="pair"><div class="inp"><input id="refQ" inputmode="decimal" placeholder="0" aria-label="Quantidade de refeições"><b class="r">×</b></div><div class="inp"><b>R$</b><input id="refV" inputmode="decimal" placeholder="valor" aria-label="Valor da refeição"></div></div><span class="hint" id="hRef">Quantidade × valor de cada.</span></div>
+        <div class="f"><label for="comissao">Comissão do motorista</label><div class="inp"><select id="comissao"><option value="0,10">R$ 0,10 por km</option><option value="0,18">R$ 0,18 por km</option></select></div><span class="hint" id="hCom">Só em viagens acima de 1.000 km (km total, com retorno).</span></div>
+        <div class="f"><label for="coleta">Taxa de coleta</label><div class="inp"><b>R$</b><input id="coleta" inputmode="decimal" value="800,00"></div><span class="hint">Padrão R$ 800,00. Ajuste se precisar.</span></div>
+        <div class="f"><label for="outros">Outros custos</label><div class="inp"><b>R$</b><input id="outros" inputmode="decimal" placeholder="0,00"></div><span class="hint">Chapa, ajudante, descarga…</span></div>
+        <details class="comp" id="comp"><summary>Ver composição do custo por km deste veículo</summary><div class="vinfo" id="vInfo"></div></details>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Frete (CT-es) e impostos</legend>
+      <div class="rota" id="ctes"></div>
+      <div class="rtools">
+        <button type="button" class="btn-add" id="addCte">+ Adicionar CT-e</button>
+        <button type="button" class="btn-add" id="ctesRota">Puxar cidades da rota</button>
+      </div>
+      <div class="rtot" id="ctot"></div>
+      <div class="grid">
+                <div class="f"><label for="nf">Valor da mercadoria (NF)</label><div class="inp"><b>R$</b><input id="nf" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="f"><label for="seguro">Seguro + GRIS</label><div class="inp"><input id="seguro" inputmode="decimal" value="0,10"><b class="r">% da NF</b></div></div>
+        <div class="f"><label for="icms">ICMS</label><div class="inp"><input id="icms" inputmode="decimal" value="17"><b class="r">%</b></div>
+          <div class="chips"><button type="button" data-icms="0">Isento</button><button type="button" data-icms="7">7%</button><button type="button" data-icms="12">12%</button><button type="button" data-icms="17">17%</button></div></div>
+        <div class="f"><label for="fed">I. Federais</label><div class="inp"><input id="fed" inputmode="decimal" value="8,5"><b class="r">% do frete</b></div><span class="hint">PIS, COFINS, IRPJ e CSLL.</span></div>
+        <div class="f"><label for="desp">Custos adicionais</label><div class="inp"><input id="desp" inputmode="decimal" value="26"><b class="r">% do frete</b></div><span class="hint">Sobre o faturamento.</span></div>
+        <div class="f"><label for="margem">Margem desejada</label><div class="inp"><input id="margem" inputmode="decimal" value="15"><b class="r">%</b></div><span class="hint">Usada para o preço sugerido e para avaliar o frete.</span></div>
+      </div>
+    </fieldset>
+  </div>
+
+  <aside id="resultado" aria-live="polite">
+    <div class="rlabel">Resultado (faturamento − custo total)</div>
+    <div id="rRes"></div>
+    <div id="rErr"></div>
+    <table class="dre" id="dre"></table>
+    <div class="line2" id="rCustoSub" style="margin-top:12px"></div>
+    <div class="kpis">
+      <div class="kpi"><span>Km total</span><strong id="kKmT">—</strong></div>
+      <div class="kpi"><span>Custo por km</span><strong id="kCkm">—</strong></div>
+      <div class="kpi"><span>Receita por km</span><strong id="kFkm">—</strong></div>
+      <div class="kpi"><span>Receita sobre a NF</span><strong id="kNf">—</strong></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn-main" id="copiar">Copiar resumo</button>
+      <button type="button" class="btn-sec" id="limpar">Nova viagem</button>
+    </div>
+  </aside>
+</main>
+
+<div class="mbar"><div><span>Custo</span><br><strong id="mbCusto">R$ 0,00</strong></div><div><span>Resultado</span><br><strong id="mbRes">—</strong></div><a href="#resultado">Detalhes</a></div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var KEY='pxfrete:v5', resumo='';
+  var ids=['vel','veiculo','custokm','custohora','hextra','pernQ','pernV','refQ','refV','comissao','coleta','outros','nf','seguro','icms','fed','desp','margem'];
+  // Dados de teste (rota do print). Some ao clicar em "Nova viagem".
+  var rotas=[{"cidade": "Itajai - SC", "km": "", "ped": "", "h": ""}, {"cidade": "Praia Grande - SC", "km": "362", "ped": "", "h": "6"}, {"cidade": "Estância Velha - RS", "km": "221", "ped": "", "h": "3,7"}, {"cidade": "São Leopoldo - RS", "km": "16", "ped": "", "h": "0,3"}, {"cidade": "São Leopoldo - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Nova Santa Rita - RS", "km": "26", "ped": "", "h": "0,4"}, {"cidade": "Viamão - RS", "km": "54", "ped": "", "h": "0,9"}, {"cidade": "Porto Alegre - RS", "km": "21", "ped": "", "h": "0,4"}, {"cidade": "Eldorado do Sul - RS", "km": "27", "ped": "", "h": "0,5"}, {"cidade": "Guaiba - RS", "km": "17", "ped": "", "h": "0,3"}, {"cidade": "Guaiba - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Guaiba - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Guaiba - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Guaiba - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Triunfo - RS", "km": "55", "ped": "", "h": "0,9"}, {"cidade": "Triunfo - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Santa Cruz do Sul - RS", "km": "98", "ped": "", "h": "1,6"}, {"cidade": "Santa Cruz do Sul - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Santa Cruz do Sul - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Santa Cruz do Sul - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Rio Pardo - RS", "km": "32", "ped": "", "h": "0,5"}, {"cidade": "Pelotas - RS", "km": "238", "ped": "", "h": "4"}, {"cidade": "Pelotas - RS", "km": "0", "ped": "", "h": "0"}, {"cidade": "Santa Vitória do Palmar - RS", "km": "271", "ped": "", "h": "4,5"}, {"cidade": "Santa Vitória do Palmar - RS", "km": "0", "ped": "", "h": "0"}];
+  var ctes=[{"cidade": "Praia Grande - SC", "valor": "2.272,25"}, {"cidade": "Estância Velha - RS", "valor": "1.565,45"}, {"cidade": "São Leopoldo - RS", "valor": "1.557,61"}, {"cidade": "São Leopoldo - RS", "valor": "1.565,45"}, {"cidade": "Nova Santa Rita - RS", "valor": "1.565,45"}, {"cidade": "Viamão - RS", "valor": "1549,77"}, {"cidade": "Porto Alegre - RS", "valor": "1.541,93"}, {"cidade": "Eldorado do Sul - RS", "valor": "1.565,45"}, {"cidade": "Guaiba - RS", "valor": "2.599,08"}, {"cidade": "Guaiba - RS", "valor": "1.557,61"}, {"cidade": "Guaiba - RS", "valor": "1.573,30"}, {"cidade": "Guaiba - RS", "valor": "1.565,45"}, {"cidade": "Guaiba - RS", "valor": "1.549,77"}, {"cidade": "Triunfo - RS", "valor": "1.841,70"}, {"cidade": "Triunfo - RS", "valor": "1.849,55"}, {"cidade": "Santa Cruz do Sul - RS", "valor": "1.557,61"}, {"cidade": "Santa Cruz do Sul - RS", "valor": "2.681,18"}, {"cidade": "Santa Cruz do Sul - RS", "valor": "1.557,61"}, {"cidade": "Santa Cruz do Sul - RS", "valor": "1565,45"}, {"cidade": "Rio Pardo - RS", "valor": "1.557,61"}, {"cidade": "Pelotas - RS", "valor": "1.565,45"}, {"cidade": "Pelotas - RS", "valor": "1.818,88"}, {"cidade": "Santa Vitória do Palmar - RS", "valor": "2.365,94"}, {"cidade": "Santa Vitória do Palmar - RS", "valor": "3.388,43"}];
+  var retorno={km:'',ped:'',h:''};
+
+  var ITENS=['mec','lic','seg','oleo','pneu','rast'];
+  var VEIC={
+    boxer:{nome:'Boxer QIG6150',cap:'9 m³ · 1.800 kg',litro:6.25,cons:12,hora:29.6086,mec:.4762,lic:.0179,seg:.1012,oleo:0,pneu:0,rast:.0543},
+    iveco:{nome:'Iveco QIX6415',cap:'15 m³ · 2,5 t',litro:6.25,cons:7,hora:29.6086,mec:.4762,lic:.0143,seg:.1012,oleo:0,pneu:0,rast:.0543},
+    saveiro:{nome:'Saveiro QIX9325',cap:'1 m³ · 600 kg',litro:5.29,cons:12,hora:21.149,mec:null,lic:.017,seg:.04,oleo:0,pneu:0,rast:0},
+    fve:{nome:'3/4 FVE9D27',cap:'30 m³ · 1,5 t',litro:4.209,cons:6.5,hora:21.149,mec:null,lic:null,seg:null,oleo:.0375,pneu:.0578,rast:null},
+    mlu:{nome:'Toco MLU0908',cap:'32 m³ · 5 t',litro:6.25,cons:5.5,hora:29.6086,mec:.4762,lic:.0149,seg:.125,oleo:0,pneu:0,rast:.0543},
+    qiy:{nome:'Toco QIY4838',cap:'8 t',litro:6.25,cons:5.5,hora:29.6086,mec:.5556,lic:.0178,seg:.1389,oleo:0,pneu:0,rast:.0507},
+    meu:{nome:'Truck MEU6J37',cap:'40 m³ · 8 t',litro:4.209,cons:4.5,hora:21.149,mec:null,lic:null,seg:null,oleo:.038,pneu:.175,rast:null},
+    qhc:{nome:'Truck QHC7595',cap:'55 m³ · 12 t',litro:6.25,cons:3.6,hora:21.149,mec:null,lic:null,seg:null,oleo:.034,pneu:.175,rast:null},
+    okg:{nome:'Truck OKG5879',cap:'80 m³ · 12 t',litro:6.25,cons:4,hora:42.298,mec:.7083,lic:.0167,seg:.1125,oleo:0,pneu:0,rast:.038},
+    carreta:{nome:'Carreta',cap:'106 m³ · 25 t',litro:6.25,cons:2.4,hora:59.2172,mec:.8333,lic:.0292,seg:.1125,oleo:0,pneu:0,rast:.038}
+  };
+  var sel=$('veiculo');
+  Object.keys(VEIC).forEach(function(k){var o=VEIC[k];
+    o.comb=o.litro/o.cons;
+    o.man=ITENS.reduce(function(s,f){return s+(o[f]||0)},0);
+    o.km=o.comb+o.man;
+    o.falta=ITENS.some(function(f){return o[f]===null});
+    sel.add(new Option(o.nome+' ('+o.cap+')',k));});
+  sel.add(new Option('Outro veículo (digitar custos)',''));
+
+  function n(v){v=(v==null?'':String(v)).trim(); if(!v) return 0;
+    v=v.replace(/\s|R\$|%/g,''); if(v.indexOf(',')>-1) v=v.replace(/\./g,'').replace(',','.');
+    var x=parseFloat(v); return isFinite(x)?x:0;}
+  function num(id){return n($(id).value)}
+  function brl(x){return x.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+  function brl3(x){return x.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:3,maximumFractionDigits:3})}
+  function pct(x){return (x*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'}
+  function nf(x,d){return x.toLocaleString('pt-BR',{maximumFractionDigits:d==null?1:d})}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function horasTxt(h){var hh=Math.floor(h), mm=Math.round((h-hh)*60); if(mm===60){hh++;mm=0} return hh+' h'+(mm?' '+(mm<10?'0':'')+mm:'')}
+
+  /* ---------- Rota ---------- */
+  function renderRota(){
+    var last=rotas.length-1;
+    var h='<div class="rrow rhead"><span></span><span></span><span>Cidade</span><span>Km do trecho</span><span>Pedágio</span><span>Tempo</span><span></span></div>';
+    h+=rotas.map(function(r,i){
+      var cls=i===0?'orig':(i===last?'dest':'');
+      var ph=i===0?'Origem (ex.: Itajaí, SC)':(i===last?'Destino (ex.: Curitiba, PR)':'Cidade de passagem');
+      var row='<div class="rrow '+cls+'" data-i="'+i+'"><button type="button" class="h" data-drag="'+i+'" title="Arraste para mudar a ordem" aria-label="Mudar ordem da cidade (arraste ou use as setas)"><svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor" aria-hidden="true"><circle cx="4" cy="3" r="1.6"/><circle cx="10" cy="3" r="1.6"/><circle cx="4" cy="9" r="1.6"/><circle cx="10" cy="9" r="1.6"/><circle cx="4" cy="15" r="1.6"/><circle cx="10" cy="15" r="1.6"/></svg></button><span class="i" aria-hidden="true">'+(i+1)+'</span>'
+        +'<div class="c inp"><input data-f="cidade" autocomplete="off" value="'+esc(r.cidade)+'" placeholder="'+ph+'" aria-label="'+ph+'"><button type="button" class="cp" data-cp="'+i+'" title="Copiar cidade para colar no QualP" aria-label="Copiar cidade"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>';
+      if(i>0){
+        row+='<div class="k inp"><input data-f="km" inputmode="decimal" value="'+esc(r.km)+'" placeholder="0" aria-label="Km do trecho"><b class="r">km</b></div>'
+          +'<div class="p inp"><b>R$</b><input data-f="ped" inputmode="decimal" value="'+esc(r.ped)+'" placeholder="0,00" aria-label="Pedágio do trecho"></div>'
+          +'<div class="t inp"><input data-f="h" inputmode="decimal" value="'+esc(r.h)+'" placeholder="0" aria-label="Tempo do trecho em horas"><b class="r">h</b></div>';
+      }
+      row+='<div class="x">'+(rotas.length>2&&i>0?'<button type="button" data-rm="'+i+'" aria-label="Remover cidade">×</button>':'')+'</div></div>';
+      return row;
+    }).join('');
+    if($('volta').checked){
+      h+='<div class="rrow ret" data-i="ret"><span class="h"></span><span class="i" aria-hidden="true">↩</span>'
+        +'<div class="c inp"><input value="Retorno → '+esc(rotas[0].cidade||'origem')+'" readonly tabindex="-1" aria-label="Trecho de retorno à origem"></div>'
+        +'<div class="k inp"><input data-f="km" inputmode="decimal" value="'+esc(retorno.km)+'" placeholder="0" aria-label="Km do retorno"><b class="r">km</b></div>'
+        +'<div class="p inp"><b>R$</b><input data-f="ped" inputmode="decimal" value="'+esc(retorno.ped)+'" placeholder="0,00" aria-label="Pedágio do retorno"></div>'
+        +'<div class="t inp"><input data-f="h" inputmode="decimal" value="'+esc(retorno.h)+'" placeholder="0" aria-label="Tempo do retorno em horas"><b class="r">h</b></div>'
+        +'<div class="x"></div></div>';
+    }
+    $('rota').innerHTML=h;
+  }
+  $('rota').addEventListener('input',function(e){
+    var f=e.target.getAttribute('data-f'); if(!f) return;
+    var di=e.target.closest('.rrow').getAttribute('data-i'); (di==='ret'?retorno:rotas[+di])[f]=e.target.value;
+    if(f==='cidade'&&di==='0'&&$('volta').checked){var ri=$('rota').querySelector('.ret .c input'); if(ri) ri.value='Retorno → '+(e.target.value||'origem');}
+    calc(); save();
+  });
+  function copiarTexto(t,ok){
+    function fb(){var x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy');ok()}catch(e){}document.body.removeChild(x)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fb)}else fb();
+  }
+  /* Roteiro do QualP para o Claude no Chrome */
+  $('roteiro').addEventListener('click',function(){
+    var btn=this;
+    function fmt(t){var m=t.trim().match(/^(.*?)\s*[-,\/]\s*([A-Za-z]{2})$/); return m?m[1].trim()+'/'+m[2].toUpperCase():t.trim()}
+    function ch(t){return semAcento(t).replace(/\s*[,\-\/]\s*/g,' ').replace(/\s+/g,' ')}
+    var orig=(rotas[0].cidade||'').trim();
+    if(!orig){btn.textContent='Preencha a origem';setTimeout(function(){btn.textContent='Copiar roteiro para o Claude no Chrome'},1800);return}
+    var dest=[], ult=ch(orig);
+    rotas.slice(1).forEach(function(r){var c=(r.cidade||'').trim(); if(!c) return; var k=ch(c); if(k!==ult){dest.push(fmt(c)); ult=k;}});
+    if(!dest.length){btn.textContent='Preencha as cidades';setTimeout(function(){btn.textContent='Copiar roteiro para o Claude no Chrome'},1800);return}
+    var origNome=fmt(orig), origBusca=origNome.split('/')[0].toUpperCase();
+    var txt=['Entre em https://qualp.com.br/#/?ds= e monte esta rota:','',
+      '1. No campo Origem, digite '+origBusca+' e selecione '+origNome.toUpperCase()+'.',
+      '2. No campo Destino, digite e selecione a primeira cidade da lista.',
+      '3. Clique no "+" e adicione as demais cidades, uma por vez, na ordem:']
+      .concat(dest.map(function(d){return '   - '+d}))
+      .concat(['4. Clique em Salvar.','5. Em eixos, selecione 3.','6. Ative "Calcular Volta".','7. Clique em Calcular.',
+      '8. Se aparecer aviso de licença, clique em "Já tenho conta", depois em "Entrar", e clique em Calcular de novo.','',
+      'No final, me informe o valor total do pedágio, o valor da ida e o da volta.']);
+    if(dest.length>20) txt.push('','Atenção: a rota tem '+dest.length+' destinos e o QualP aceita no máximo 20.');
+    copiarTexto(txt.join('\n'),function(){btn.textContent='Roteiro copiado! Cole no Claude no Chrome';setTimeout(function(){btn.textContent='Copiar roteiro para o Claude no Chrome'},2500)});
+  });
+
+  $('rota').addEventListener('click',function(e){
+    var b=e.target.closest('[data-cp]'); if(!b) return;
+    var v=(rotas[+b.getAttribute('data-cp')].cidade||'').trim(); if(!v) return;
+    var sp=v.match(/^(.*?)\s*-\s*([A-Za-z]{2})$/); if(sp) v=sp[1]+', '+sp[2].toUpperCase();
+    copiarTexto(v,function(){b.classList.add('ok');b.title='Copiado: '+v;setTimeout(function(){b.classList.remove('ok');b.title='Copiar cidade para colar no QualP'},1500)});
+  });
+  $('rota').addEventListener('click',function(e){
+    var b=e.target.closest('[data-rm]'); if(!b) return;
+    rotas.splice(+b.getAttribute('data-rm'),1); renderRota(); calc(); save();
+  });
+  $('addCidade').addEventListener('click',function(){
+    rotas.push({cidade:'',km:'',ped:'',h:''}); renderRota(); calc(); save();
+    var ins=$('rota').querySelectorAll('[data-f="cidade"]'); ins[ins.length-1].focus();
+  });
+
+  /* ---------- CT-es ---------- */
+  function renderCtes(){
+    var h='<div class="rrow crow rhead"><span></span><span></span><span>Cidade</span><span>Valor do CT-e</span><span></span></div>';
+    h+=ctes.map(function(c,i){
+      return '<div class="rrow crow" data-i="'+i+'"><button type="button" class="h" data-drag="'+i+'" title="Arraste para mudar a ordem" aria-label="Mudar ordem do CT-e (arraste ou use as setas)"><svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor" aria-hidden="true"><circle cx="4" cy="3" r="1.6"/><circle cx="10" cy="3" r="1.6"/><circle cx="4" cy="9" r="1.6"/><circle cx="10" cy="9" r="1.6"/><circle cx="4" cy="15" r="1.6"/><circle cx="10" cy="15" r="1.6"/></svg></button><span class="i" aria-hidden="true">'+(i+1)+'</span>'
+        +'<div class="c inp"><input data-f="cidade" autocomplete="off" value="'+esc(c.cidade)+'" placeholder="Cidade de entrega" aria-label="Cidade do CT-e"></div>'
+        +'<div class="v inp"><b>R$</b><input data-f="valor" inputmode="decimal" value="'+esc(c.valor)+'" placeholder="0,00" aria-label="Valor do CT-e"></div>'
+        +'<div class="x">'+(ctes.length>1?'<button type="button" data-rm="'+i+'" aria-label="Remover CT-e">×</button>':'')+'</div></div>';
+    }).join('');
+    $('ctes').innerHTML=h;
+  }
+  $('ctes').addEventListener('input',function(e){
+    var f=e.target.getAttribute('data-f'); if(!f) return;
+    ctes[+e.target.closest('.rrow').getAttribute('data-i')][f]=e.target.value; calc(); save();
+  });
+  $('ctes').addEventListener('click',function(e){
+    var b=e.target.closest('[data-rm]'); if(!b) return;
+    ctes.splice(+b.getAttribute('data-rm'),1); renderCtes(); calc(); save();
+  });
+  $('addCte').addEventListener('click',function(){
+    ctes.push({cidade:'',valor:''}); renderCtes(); calc(); save();
+    var ins=$('ctes').querySelectorAll('[data-f="cidade"]'); ins[ins.length-1].focus();
+  });
+  $('ctesRota').addEventListener('click',function(){
+    // Mesma lista e mesma sequência da rota (da 2ª cidade em diante), com repetições.
+    // Valores já digitados acompanham a cidade correspondente.
+    function chave(t){return semAcento(t).replace(/\s*[,\-\/]\s*/g,' ').replace(/\s+/g,' ')}
+    var restantes=ctes.filter(function(c){return c.cidade.trim()||c.valor.trim()});
+    var nova=[];
+    rotas.slice(1).forEach(function(r){
+      var nm=r.cidade.trim(); if(!nm) return;
+      var k=chave(nm), idx=-1;
+      for(var i=0;i<restantes.length;i++){if(chave(restantes[i].cidade)===k){idx=i;break}}
+      if(idx>=0){nova.push({cidade:nm,valor:restantes[idx].valor}); restantes.splice(idx,1);}
+      else nova.push({cidade:nm,valor:''});
+    });
+    nova=nova.concat(restantes.filter(function(c){return c.valor.trim()}));
+    ctes=nova.length?nova:[{cidade:'',valor:''}]; renderCtes(); calc(); save();
+  });
+
+  /* ---------- Arrastar linhas (rota e CT-es) ---------- */
+  function arrastavel(cont, mover, render){
+    var drag=null;
+    function linhas(){return [].slice.call(cont.querySelectorAll('.rrow:not(.rhead):not(.ret)'))}
+    cont.addEventListener('pointerdown',function(e){
+      var h=e.target.closest('[data-drag]'); if(!h) return;
+      e.preventDefault();
+      var i=+h.getAttribute('data-drag');
+      drag={from:i,to:i,y0:e.clientY,row:h.closest('.rrow')};
+      drag.row.classList.add('dragging');
+      try{h.setPointerCapture(e.pointerId)}catch(x){}
+    });
+    cont.addEventListener('pointermove',function(e){
+      if(!drag) return;
+      drag.row.style.transform='translateY('+(e.clientY-drag.y0)+'px)';
+      var rows=linhas(), to=drag.from;
+      rows.forEach(function(r,i){
+        if(i===drag.from) return;
+        var b=r.getBoundingClientRect(), mid=b.top+b.height/2;
+        if(i<drag.from&&e.clientY<mid) to=Math.min(to,i);
+        if(i>drag.from&&e.clientY>mid) to=Math.max(to,i);
+      });
+      drag.to=to;
+      rows.forEach(function(r,i){
+        r.classList.toggle('drop-before',to<drag.from&&i===to);
+        r.classList.toggle('drop-after',to>drag.from&&i===to);
+      });
+    });
+    function fim(){
+      if(!drag) return; var d=drag; drag=null;
+      if(d.to!==d.from) mover(d.from,d.to); else render();
+    }
+    cont.addEventListener('pointerup',fim);
+    cont.addEventListener('pointercancel',fim);
+    cont.addEventListener('keydown',function(e){
+      var h=e.target.closest('[data-drag]'); if(!h) return;
+      var i=+h.getAttribute('data-drag'), j=e.key==='ArrowUp'?i-1:(e.key==='ArrowDown'?i+1:-1);
+      if(j<0||j>=linhas().length) return;
+      e.preventDefault(); mover(i,j);
+      var nh=cont.querySelector('[data-drag="'+j+'"]'); if(nh) nh.focus();
+    });
+  }
+  arrastavel($('ctes'),function(de,para){
+    var it=ctes.splice(de,1)[0]; ctes.splice(para,0,it); renderCtes(); calc(); save();
+  },renderCtes);
+  arrastavel($('rota'),function(de,para){
+    // Guarda km/pedágio/tempo de cada trecho (cidade anterior → cidade) para reaproveitar
+    function ch(t){return semAcento(t).replace(/\s*[,\-\/]\s*/g,' ').replace(/\s+/g,' ')}
+    var mapa={};
+    for(var i=1;i<rotas.length;i++) mapa[ch(rotas[i-1].cidade)+'|'+ch(rotas[i].cidade)]={km:rotas[i].km,ped:rotas[i].ped,h:rotas[i].h};
+    var it=rotas.splice(de,1)[0]; rotas.splice(para,0,it);
+    var mudou=false;
+    rotas.forEach(function(r,i){
+      var m=i>0?mapa[ch(rotas[i-1].cidade)+'|'+ch(r.cidade)]:null;
+      if(m){r.km=m.km; r.ped=m.ped; r.h=m.h;}
+      else{ if(i>0&&(r.km||r.ped||r.h)) mudou=true; r.km=''; r.ped=''; r.h=''; }
+    });
+    renderRota(); calc(); save();
+    if(mudou){var st=$('rstat'); st.className='rstat warn'; st.textContent='Ordem alterada. Os trechos que mudaram ficaram em branco: clique em “Calcular km automático” e confira o pedágio.';}
+  },renderRota);
+
+  /* ---------- Km automático (OpenStreetMap) ---------- */
+  var GEO_KEY='pxfrete:geo2';
+  var UF={AC:'Acre',AL:'Alagoas',AP:'Amapá',AM:'Amazonas',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MT:'Mato Grosso',MS:'Mato Grosso do Sul',MG:'Minas Gerais',PA:'Pará',PB:'Paraíba',PR:'Paraná',PE:'Pernambuco',PI:'Piauí',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',RO:'Rondônia',RR:'Roraima',SC:'Santa Catarina',SP:'São Paulo',SE:'Sergipe',TO:'Tocantins'};
+  function semAcento(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
+  function separa(nome){var m=nome.match(/^(.*?)[\s,\-\/]+([A-Za-z]{2})\s*$/); if(m&&UF[m[2].toUpperCase()]) return {cidade:m[1].trim(),estado:UF[m[2].toUpperCase()]}; return {cidade:nome,estado:''};}
+  function geoCache(){try{return JSON.parse(localStorage.getItem(GEO_KEY)||'{}')}catch(e){return {}}}
+  function setGeo(c){try{localStorage.setItem(GEO_KEY,JSON.stringify(c))}catch(e){}}
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+  async function getJSON(url){
+    var ctl=new AbortController(), t=setTimeout(function(){ctl.abort()},12000);
+    try{var r=await fetch(url,{signal:ctl.signal}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();}
+    finally{clearTimeout(t)}
+  }
+  async function geocode(nome,cache){
+    var k=nome.toLowerCase().replace(/\s+/g,' ').trim();
+    if(cache[k]) return cache[k];
+    var sp=separa(nome), p=null;
+    var q=encodeURIComponent(sp.estado?sp.cidade+', '+sp.estado:nome);
+    var nomUrl=sp.estado
+      ?'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&city='+encodeURIComponent(sp.cidade)+'&state='+encodeURIComponent(sp.estado)
+      :'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&q='+q;
+    try{ // 1ª opção: Nominatim
+      var j=await getJSON(nomUrl);
+      if(j&&j.length) p={lat:+j[0].lat,lon:+j[0].lon};
+      await sleep(1100);
+    }catch(e){}
+    if(!p){ // 2ª opção: Photon
+      try{
+        var f=await getJSON('https://photon.komoot.io/api/?limit=5&bbox=-74,-34,-34,5.5&q='+q);
+        var fs=(f&&f.features)||[];
+        if(sp.estado) fs=fs.filter(function(x){return semAcento(x.properties&&x.properties.state)===semAcento(sp.estado)});
+        if(fs.length){var c=fs[0].geometry.coordinates; p={lat:+c[1],lon:+c[0]};}
+      }catch(e){}
+    }
+    if(p) cache[k]=p;
+    return p;
+  }
+  async function rota(coords){
+    var urls=['https://router.project-osrm.org/route/v1/driving/'+coords+'?overview=false',
+              'https://routing.openstreetmap.de/routed-car/route/v1/driving/'+coords+'?overview=false'];
+    for(var i=0;i<urls.length;i++){
+      try{var j=await getJSON(urls[i]); if(j&&j.code==='Ok'&&j.routes&&j.routes[0]) return j.routes[0];}catch(e){}
+    }
+    return null;
+  }
+  async function autoKm(){
+    var st=$('rstat'), btn=$('autoKm');
+    function msg(cls,t){st.className='rstat'+(cls?' '+cls:''); st.textContent=t;}
+    var nomes=rotas.map(function(r){return r.cidade.trim()});
+    if(nomes.some(function(x){return !x})){msg('err','Preencha todas as cidades da rota antes de calcular.');return;}
+    btn.disabled=true; var cache=geoCache(), pts=[], falha=[];
+    try{
+      for(var i=0;i<nomes.length;i++){
+        msg('','Localizando '+nomes[i]+'…');
+        var g=await geocode(nomes[i],cache); if(!g) falha.push(nomes[i]); pts.push(g);
+      }
+      setGeo(cache);
+      if(falha.length===nomes.length){msg('err','O serviço de mapa não respondeu. Confira se o painel está aberto pelo link do GitHub Pages (pela prévia do Claude ou pelo arquivo no computador o mapa não funciona) e tente de novo.');return;}
+      if(falha.length){msg('err','Não encontrei: '+falha.join(', ')+'. Confira o nome e coloque o estado (ex.: Gaspar, SC).');return;}
+      msg('','Calculando a rota…');
+      var lista=$('volta').checked?pts.concat([pts[0]]):pts;
+      var coords=lista.map(function(p){return p.lon.toFixed(5)+','+p.lat.toFixed(5)}).join(';');
+      var r=await rota(coords);
+      if(!r){msg('err','Achei as cidades, mas o cálculo da rota não respondeu agora. Tente de novo em alguns minutos ou preencha o km à mão.');return;}
+      var vel=num('vel')||60;
+      r.legs.forEach(function(leg,i){
+        var km=Math.round(leg.distance/1000);
+        var alvoT=i+1<rotas.length?rotas[i+1]:retorno;
+        alvoT.km=String(km);
+        alvoT.h=(km/vel).toLocaleString('pt-BR',{maximumFractionDigits:1});
+      });
+      renderRota(); calc(); save();
+      var sus=[];
+      r.legs.forEach(function(leg,i){var km=leg.distance/1000; if(km>1000) sus.push((nomes[i+1]||'Retorno')+' ('+Math.round(km).toLocaleString('pt-BR')+' km)')});
+      if(sus.length) msg('err','Km preenchidos, mas confira: '+sus.join(', ')+'. Distância muito alta, a cidade pode ter sido localizada errado. Confira a grafia.');
+      else msg('ok','Km e tempo preenchidos pelo mapa (OpenStreetMap). Confira e ajuste se precisar. O pedágio continua manual.');
+    }catch(e){
+      msg('err','Erro ao consultar o mapa: '+(e&&e.message||e)+'. Tente de novo ou preencha o km à mão.');
+    }finally{btn.disabled=false;}
+  }
+  $('autoKm').addEventListener('click',autoKm);
+
+  /* ---------- Sugestão de cidades (lista oficial do IBGE) ---------- */
+  var MUN=null, MUN_KEY='pxfrete:mun', carregando=null, PRI={SC:0,PR:1,RS:2,SP:3};
+  function prep(arr){return arr.map(function(a){return {nome:a[0],uf:a[1],k:semAcento(a[0])}})}
+  function carregarMun(){
+    if(MUN) return Promise.resolve(MUN);
+    if(carregando) return carregando;
+    try{var c=JSON.parse(localStorage.getItem(MUN_KEY)||'null'); if(c&&c.length>5000){MUN=prep(c); return Promise.resolve(MUN);}}catch(e){}
+    carregando=fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?view=nivelado')
+      .then(function(r){if(!r.ok) throw new Error('ibge'); return r.json()})
+      .then(function(j){
+        var arr=j.map(function(m){return [m['municipio-nome'],m['UF-sigla']]});
+        try{localStorage.setItem(MUN_KEY,JSON.stringify(arr))}catch(e){}
+        MUN=prep(arr); return MUN;
+      }).catch(function(){carregando=null; return null});
+    return carregando;
+  }
+  function buscar(q){
+    var uf='', orig=q.trim(), m=orig.match(/^(.*?)\s*(?:[,\-\/]\s*([A-Za-z]{2})|\s([A-Z]{2}))\s*$/);
+    if(m){var sig=(m[2]||m[3]).toUpperCase(); if(UF[sig]){uf=sig; orig=m[1];}}
+    var t=semAcento(orig).replace(/\s+/g,' ').trim();
+    if(t.length<2) return [];
+    var a=[], b=[];
+    for(var i=0;i<MUN.length;i++){var c=MUN[i]; if(uf&&c.uf!==uf) continue;
+      if(c.k.indexOf(t)===0) a.push(c); else if(c.k.indexOf(t)>0) b.push(c);}
+    function ord(x,y){var px=PRI[x.uf]!=null?PRI[x.uf]:9, py=PRI[y.uf]!=null?PRI[y.uf]:9; return px-py||x.k.length-y.k.length||x.k.localeCompare(y.k)}
+    a.sort(ord); b.sort(ord);
+    return a.concat(b).slice(0,8);
+  }
+  var sug=document.createElement('ul'); sug.className='sug hide'; sug.setAttribute('role','listbox'); document.body.appendChild(sug);
+  var alvo=null, lista=[], ativo=-1, escolhendo=false;
+  function ehCidade(el){return !!(el&&el.getAttribute&&el.getAttribute('data-f')==='cidade')}
+  function fechar(){sug.classList.add('hide'); alvo=null; lista=[]; ativo=-1;}
+  function posicionar(){
+    if(!alvo) return; var r=(alvo.closest('.inp')||alvo).getBoundingClientRect();
+    sug.style.left=(r.left+window.scrollX)+'px'; sug.style.top=(r.bottom+window.scrollY+4)+'px'; sug.style.width=Math.max(r.width,260)+'px';
+  }
+  function mostrar(inp){
+    if(!MUN){carregarMun().then(function(x){if(x&&document.activeElement===inp) mostrar(inp)}); return;}
+    alvo=inp; lista=buscar(inp.value); ativo=-1;
+    if(!lista.length){sug.classList.add('hide'); return;}
+    sug.innerHTML=lista.map(function(c,i){return '<li role="option" data-k="'+i+'"><span>'+esc(c.nome)+'</span><span class="uf">'+c.uf+'</span></li>'}).join('');
+    posicionar(); sug.classList.remove('hide');
+  }
+  function marcar(){
+    [].forEach.call(sug.children,function(li,i){li.setAttribute('aria-selected',i===ativo?'true':'false')});
+    var a=sug.children[ativo]; if(a) a.scrollIntoView({block:'nearest'});
+  }
+  function escolher(i){
+    var c=lista[i], inp=alvo; if(!c||!inp) return;
+    inp.value=c.nome+' - '+c.uf; fechar();
+    escolhendo=true; inp.dispatchEvent(new Event('input',{bubbles:true})); escolhendo=false;
+  }
+  document.addEventListener('focusin',function(e){if(ehCidade(e.target)) carregarMun()});
+  document.addEventListener('input',function(e){if(!escolhendo&&ehCidade(e.target)) mostrar(e.target)});
+  document.addEventListener('keydown',function(e){
+    if(!alvo||e.target!==alvo||sug.classList.contains('hide')) return;
+    if(e.key==='ArrowDown'){ativo=(ativo+1)%lista.length; marcar(); e.preventDefault();}
+    else if(e.key==='ArrowUp'){ativo=(ativo-1+lista.length)%lista.length; marcar(); e.preventDefault();}
+    else if(e.key==='Enter'){escolher(ativo<0?0:ativo); e.preventDefault();}
+    else if(e.key==='Escape'){fechar();}
+    else if(e.key==='Tab'){if(ativo>=0) escolher(ativo); else fechar();}
+  });
+  sug.addEventListener('pointerdown',function(e){var li=e.target.closest('li'); if(!li) return; e.preventDefault(); escolher(+li.getAttribute('data-k'));});
+  document.addEventListener('focusout',function(e){if(e.target===alvo) setTimeout(function(){if(document.activeElement!==alvo) fechar()},150)});
+  window.addEventListener('resize',fechar);
+  window.addEventListener('scroll',posicionar,{passive:true});
+
+  /* ---------- Veículo ---------- */
+  function fmtIn(x,d){return x.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:d})}
+  function aplicarVeiculo(){
+    var vc=VEIC[sel.value];
+    if(vc){ $('custokm').value=fmtIn(vc.km,3); $('custohora').value=fmtIn(vc.hora,2); }
+  }
+  function renderInfo(){
+    var o=VEIC[sel.value];
+    $('comp').classList.toggle('hide',!o);
+    if(!o){ $('hKm').textContent=''; return; }
+    var dif=Math.abs(num('custokm')-o.km)>0.0005;
+    $('hKm').innerHTML=dif?'Planilha: '+brl3(o.km)+'/km. Você alterou o valor.':'Da planilha de custo da frota.';
+    var rows=[['Combustível',o.comb,nf(o.cons)+' km/l a '+brl3(o.litro)+'/l'],['Mecânica',o.mec,''],['Licenciamento',o.lic,''],['Seguro do veículo',o.seg,''],['Óleo e filtros',o.oleo,''],['Pneus',o.pneu,''],['Rastreador',o.rast,'']];
+    var h='<table>'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td class="d">'+r[2]+'</td><td class="n">'+(r[1]===null?'<span class="w">sem valor</span>':brl3(r[1])+'/km')+'</td></tr>'}).join('')
+      +'<tr class="t"><td>Custo por km rodado</td><td></td><td class="n">'+brl3(o.km)+'/km</td></tr></table>'
+      +'<p>Motorista: <strong>'+brl(o.hora)+'</strong> por hora</p>';
+    if(o.falta) h+='<p class="w">Alguns custos deste veículo estão em branco na planilha, então o custo por km está abaixo do real.</p>';
+    $('vInfo').innerHTML=h;
+  }
+
+  /* ---------- Cálculo ---------- */
+  function calc(){
+    var volta=$('volta').checked, km=0, ped=0, hr=0;
+    rotas.slice(1).forEach(function(r){km+=n(r.km); ped+=n(r.ped); hr+=n(r.h)});
+    if(volta){km+=n(retorno.km); ped+=n(retorno.ped); hr+=n(retorno.h);}
+    var nomes=rotas.map(function(r){return r.cidade.trim()}).filter(Boolean);
+    var rotaTxt=nomes.join(' → ')+(volta&&nomes.length?' → '+nomes[0]:'');
+    var gm='https://www.google.com/maps';
+    if(nomes.length>=2){var dest=volta?nomes[0]:nomes[nomes.length-1], meio=volta?nomes.slice(1):nomes.slice(1,-1);
+      gm+='/dir/?api=1&travelmode=driving&origin='+encodeURIComponent(nomes[0])+'&destination='+encodeURIComponent(dest);
+      if(meio.length) gm+='&waypoints='+encodeURIComponent(meio.join('|'));}
+    $('gmaps').href=gm;
+    $('rtot').innerHTML='Total da rota: <strong>'+nf(km)+' km</strong> · <strong>'+brl(ped)+'</strong> de pedágio · <strong>'+horasTxt(hr)+'</strong> de direção'
+      +(volta&&!n(retorno.km)?' · <span class="rwarn" style="color:var(--warn)">falta o km do retorno</span>':'')
+      +(rotaTxt?'<div class="rt">'+esc(rotaTxt)+'</div>':'');
+
+    var vc=VEIC[sel.value];
+    var cKm=num('custokm'), cHora=num('custohora'), hx=num('hextra');
+    var rod=km*cKm, comb=vc?Math.min(rod,km*vc.comb):0, man=rod-comb;
+    var horas=hr+hx, mot=horas*cHora;
+    var pern=num('pernQ')*num('pernV'), ref=num('refQ')*num('refV'), out=num('outros'), col=num('coleta');
+    var taxaCom=num('comissao'), com=km>1000?km*taxaCom:0;
+    $('hCom').textContent=km>1000?'= '+brl(com)+' ('+nf(km)+' km × '+brl(taxaCom)+')':'Só em viagens acima de 1.000 km. Esta tem '+nf(km)+' km: sem comissão.';
+    var nfv=num('nf'), seg=nfv*num('seguro')/100;
+    $('hPern').textContent=pern?'= '+brl(pern):'Quantidade × valor de cada.';
+    $('hRef').textContent=ref?'= '+brl(ref):'Quantidade × valor de cada.';
+    renderInfo();
+
+    var oper=rod+mot+com+col+ped+pern+ref+out+seg;
+    var pI=num('icms')/100, pF=num('fed')/100, T=pI+pF, D=num('desp')/100, M=num('margem')/100;
+    var frete=0, nCte=0;
+    ctes.forEach(function(c){var v=n(c.valor); if(v>0){frete+=v;nCte++}});
+    $('ctot').innerHTML='Faturamento total: <strong>'+brl(frete)+'</strong> · '+nCte+' CT-e'+(nCte===1?'':'s');
+    var vIcms=frete*pI, vFed=frete*pF, dsp=frete*D, liq=frete-vIcms-vFed-dsp;
+    var custo=oper+vIcms+vFed+dsp, lucro=frete-custo, mg=frete>0?lucro/frete:0;
+    var den0=1-T-D, denM=1-T-D-M;
+    var minimo=den0>0?oper/den0:NaN, sugerido=denM>0?oper/denM:NaN;
+    $('rErr').innerHTML=den0<=0?'<div class="err">ICMS, I. Federais e custos adicionais somam 100% ou mais do faturamento. Confira os percentuais.</div>':'';
+
+    // Resultado no topo
+    if(frete>0){
+      var cls,txt; if(lucro<0){cls='bad';txt='Prejuízo'} else if(mg+1e-9>=M){cls='good';txt='Dentro da margem de '+pct(M)} else {cls='warn';txt='Abaixo da margem de '+pct(M)}
+      $('rRes').innerHTML='<div class="big" style="color:'+(lucro<0?'#FF8A8A':'#7EE0B0')+'">'+(lucro<0?'− ':'')+brl(Math.abs(lucro))+'</div>'
+        +'<div class="line2">Margem de <strong>'+pct(mg)+'</strong> sobre '+brl(frete)+' de faturamento</div><span class="pill '+cls+'">'+txt+'</span>';
+      $('mbRes').textContent=(lucro<0?'− ':'')+brl(Math.abs(lucro));
+    } else {
+      $('rRes').innerHTML='<div class="big">—</div><div class="line2">Informe os valores dos CT-es para ver o resultado.</div>';
+      $('mbRes').textContent='—';
+    }
+    $('mbCusto').textContent=brl(custo);
+
+    // Demonstrativo completo (todas as linhas, mesmo zeradas)
+    function pc(v){return frete>0?pct(v/frete):''}
+    function linha(nome,v,det,falta,cls){
+      return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+nome+(falta&&!v?'<span class="tag">não informado</span>':'')+(det?'<span class="d">'+det+'</span>':'')+'</td><td class="v">'+(v<0?'− ':'')+brl(Math.abs(v))+'</td><td class="p">'+pc(v)+'</td></tr>';
+    }
+    var h='';
+    h+=linha('Faturamento',frete,nCte+' CT-e'+(nCte===1?'':'s'),true,'sub');
+    h+='<tr class="grp"><td colspan="3">Sobre o faturamento</td></tr>';
+    h+=linha('ICMS',vIcms,pct(pI)+' do faturamento');
+    h+=linha('I. Federais',vFed,pct(pF)+' · PIS, COFINS, IRPJ e CSLL');
+    h+=linha('Custos adicionais',dsp,pct(D)+' do faturamento');
+    h+='<tr class="grp"><td colspan="3">Custo da viagem</td></tr>';
+    if(vc){
+      h+=linha('Combustível',comb,nf(km)+' km ÷ '+nf(vc.cons)+' km/l × '+brl3(vc.litro));
+      h+=linha('Manutenção do veículo',man,'Mecânica, pneus, óleo, seguro, licenciamento, rastreador');
+    } else h+=linha('Km rodado',rod,nf(km)+' km × '+brl3(cKm)+'/km');
+    h+=linha('Motorista',mot,horasTxt(horas)+' × '+brl(cHora)+'/h',true);
+    h+=linha('Comissão do motorista',com,km>1000?nf(km)+' km × '+brl(taxaCom)+'/km':'Até 1.000 km: sem comissão');
+    h+=linha('Taxa de coleta',col,'',true);
+    h+=linha('Pedágio',ped,'Soma dos trechos',true);
+    h+=linha('Pernoite',pern,pern?nf(num('pernQ'))+' × '+brl(num('pernV')):'',true);
+    h+=linha('Refeição',ref,ref?nf(num('refQ'))+' × '+brl(num('refV')):'',true);
+    h+=linha('Seguro + GRIS',seg,nfv?pct(num('seguro')/100)+' da NF':'Informe o valor da NF',true);
+    h+=linha('Outros custos',out,'');
+    h+=linha('Custo total',custo,'Impostos + adicionais + viagem',false,'sub');
+    h+=linha('Resultado',lucro,'',false,'fim '+(lucro<0?'neg':'pos'));
+    $('dre').innerHTML=h;
+
+    $('rCustoSub').innerHTML=oper>0?'Faturamento mínimo sem prejuízo: <strong>'+(isFinite(minimo)?brl(minimo):'—')+'</strong><br>Faturamento para '+pct(M)+' de margem: <strong>'+(isFinite(sugerido)?brl(sugerido):'—')+'</strong>':'';
+
+    $('kKmT').textContent=km>0?nf(km)+' km':'—';
+    $('kCkm').textContent=km>0&&custo>0?brl(custo/km):'—';
+    $('kFkm').textContent=km>0&&frete>0?brl(frete/km):'—';
+    $('kNf').textContent=nfv>0&&frete>0?pct(frete/nfv):'—';
+
+    resumo=(oper>0||frete>0)?['Cálculo de frete — PortoEX',
+      rotaTxt?'Rota: '+rotaTxt:null,
+      (vc?'Veículo: '+vc.nome+' · ':'')+'Distância: '+nf(km)+' km · Direção: '+horasTxt(hr),
+      '',
+      'FATURAMENTO: '+brl(frete)+' ('+nCte+' CT-e'+(nCte===1?'':'s')+')',
+      '(−) ICMS '+pct(pI)+': '+brl(vIcms),
+      '(−) I. Federais '+pct(pF)+': '+brl(vFed),
+      '(−) Custos adicionais '+pct(D)+': '+brl(dsp),
+      vc?'(−) Combustível: '+brl(comb):'(−) Km rodado: '+brl(rod),
+      vc?'(−) Manutenção do veículo: '+brl(man):null,
+      '(−) Motorista: '+brl(mot)+' ('+horasTxt(horas)+')',
+      '(−) Comissão do motorista: '+brl(com)+(km>1000?' ('+nf(km)+' km × '+brl(taxaCom)+')':' (até 1.000 km)'),
+      '(−) Taxa de coleta: '+brl(col),
+      '(−) Pedágio: '+brl(ped),
+      '(−) Pernoite: '+brl(pern),
+      '(−) Refeição: '+brl(ref),
+      '(−) Seguro + GRIS: '+brl(seg),
+      out?'(−) Outros: '+brl(out):null,
+      'CUSTO TOTAL: '+brl(custo),
+      'RESULTADO: '+brl(lucro)+(frete>0?' (margem '+pct(mg)+')':''),
+      frete>0?'\nCT-es:\n'+ctes.filter(function(c){return n(c.valor)>0}).map(function(c){return '  '+(c.cidade.trim()||'Sem cidade')+': '+brl(n(c.valor))}).join('\n'):null
+    ].filter(function(x){return x!==null}).join('\n'):'';
+  }
+
+  /* ---------- Salvar ---------- */
+  function save(){try{var d={rotas:rotas,ctes:ctes,retorno:retorno,volta:$('volta').checked};ids.forEach(function(i){d[i]=$(i).value});localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+  function load(){
+    try{var d=JSON.parse(localStorage.getItem(KEY)||'null'); if(!d) return false;
+      ids.forEach(function(i){if(typeof d[i]==='string') $(i).value=d[i]});
+      if(Array.isArray(d.rotas)&&d.rotas.length>=2) rotas=d.rotas;
+      if(Array.isArray(d.ctes)&&d.ctes.length) ctes=d.ctes;
+      if(d.retorno) retorno=d.retorno;
+      $('volta').checked=!!d.volta; return true;}catch(e){return false}
+  }
+
+  ids.forEach(function(i){$(i).addEventListener('input',function(){calc();save()})});
+  sel.addEventListener('change',function(){aplicarVeiculo();calc();save()});
+  $('volta').addEventListener('change',function(){renderRota();calc();save()});
+  document.querySelectorAll('[data-icms]').forEach(function(b){
+    b.addEventListener('click',function(){$('icms').value=b.getAttribute('data-icms');calc();save()})});
+  $('limpar').addEventListener('click',function(){
+    rotas=[{cidade:'',km:'',ped:'',h:''},{cidade:'',km:'',ped:'',h:''}]; $('volta').checked=false;
+    ['hextra','pernQ','pernV','refQ','refV','outros','nf'].forEach(function(i){$(i).value=''});
+    ctes=[{cidade:'',valor:''}]; retorno={km:'',ped:'',h:''}; renderCtes();
+    renderRota();calc();save();
+  });
+  $('copiar').addEventListener('click',function(){
+    var btn=this; function msg(t){btn.textContent=t;setTimeout(function(){btn.textContent='Copiar resumo'},1500)}
+    if(!resumo){msg('Nada para copiar');return}
+    function fb(){var t=document.createElement('textarea');t.value=resumo;document.body.appendChild(t);t.select();try{document.execCommand('copy');msg('Copiado')}catch(e){}document.body.removeChild(t)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(resumo).then(function(){msg('Copiado')},fb)}else fb();
+  });
+
+  if(!load()){ sel.value='qiy'; aplicarVeiculo(); }
+  renderRota(); renderCtes(); calc();
+})();
+</script>
+</body>
+</html>
